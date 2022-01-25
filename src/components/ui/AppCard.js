@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
+
 import { THEME } from '../../theme';
 
 export const AppCard = props => <View style={{...styles.default, ...props.style}}>{props.children}</View>

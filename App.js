@@ -1,11 +1,19 @@
 import React, { useState } from 'react';
-import { Alert, StyleSheet, View } from 'react-native';
+import { View, Alert, StyleSheet } from 'react-native';
+import { useFonts } from 'expo-font';
+import AppLoading from 'expo-app-loading';
 
 import { Navbar } from './src/components/Navbar';
 import { MainScreen } from './src/screens/MainScreen';
 import { TodoScreen } from './src/screens/TodoScreen';
+import { THEME } from './src/theme';
 
 export default function App() {
+    let [fontsLoaded] = useFonts({
+        'roboto-regular': require('./assets/fonts/Roboto-Regular.ttf'),
+        'roboto-bold': require('./assets/fonts/Roboto-Bold.ttf'),
+    });
+
     const [todoId, setTodoId] = useState(null);
     const [todos, setTodos] = useState([]);
 
@@ -60,6 +68,10 @@ export default function App() {
         content = <TodoScreen todo={todo} goBack={() => setTodoId(null)} onRemove={removeTodo} onSave={updateTodo} />;
     }
 
+    if (!fontsLoaded) {
+        return <AppLoading />;
+    }
+
     return (
         <View style={styles.wrapper}>
             <Navbar title='Todo App'/>
@@ -76,7 +88,7 @@ const styles = StyleSheet.create({
     },
     container: {
         paddingVertical: 30,
-        paddingHorizontal: 20,
+        paddingHorizontal: THEME.PADDING_HORIZONTAL,
         flex: 1
     }
 });

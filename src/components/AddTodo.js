@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, TextInput, Button, Alert } from 'react-native';
+import { View, TextInput, Alert, StyleSheet, Keyboard } from 'react-native';
+import { Feather } from '@expo/vector-icons';
+
 import { THEME } from '../theme';
 
 export const AddTodo = ({ onSubmit }) => {
@@ -9,6 +11,7 @@ export const AddTodo = ({ onSubmit }) => {
 		if (value.trim()) {
 			onSubmit(value);
 			setValue('');
+			Keyboard.dismiss();
 		} else {
 			Alert.alert('Todo title cannot be empty');
 		}
@@ -24,7 +27,8 @@ export const AddTodo = ({ onSubmit }) => {
 				autoCorrect={false}
 				autoCapitalize='none'
 			/>
-			<Button title='Add' onPress={pressHandler}/>
+
+			<Feather name="plus-circle" size={30} color={THEME.MAIN_COLOR} onPress={pressHandler}/>
 		</View>
 	)
 }
@@ -37,7 +41,7 @@ const styles = StyleSheet.create({
 		marginBottom: 15
 	},
 	input: {
-		width: '70%',
+		width: '80%',
 		borderBottomWidth: 2,
 		borderBottomColor: THEME.MAIN_COLOR,
 		borderStyle: 'solid',

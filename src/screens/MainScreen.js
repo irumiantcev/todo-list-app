@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useCallback } from 'react';
 import { View, FlatList, Image, StyleSheet, Dimensions } from 'react-native';
 
 import { AddTodo } from '../components/AddTodo';
@@ -6,11 +6,18 @@ import { Todo } from '../components/Todo';
 import { THEME } from '../theme';
 import { TodoContext } from '../context/todo/todoContext';
 import { ScreenContext } from '../context/screen/screenContext';
+import { AppLoader } from '../components/ui/AppLoader';
 
 export const MainScreen = () => {
 	const [deviceWidth, setDeviceWidth] = useState(Dimensions.get('window').width - THEME.PADDING_HORIZONTAL * 2);
-	const { todos, addTodo, removeTodo } = useContext(TodoContext);
+	const { todos, addTodo, removeTodo, fetchTodos, loading } = useContext(TodoContext);
 	const { changeScreen } = useContext(ScreenContext);
+
+	const loadTodos = useCallback(async () => await fetchTodos(), [fetchTodos]);
+
+	useEffect(async() => {
+		await loadTodos();
+	}, []);
 
 	useEffect(() => {
 		const update = () => {
@@ -21,6 +28,10 @@ export const MainScreen = () => {
 
 		return () => subscription?.remove();
 	});
+
+	if (loading) {
+		return <AppLoader/>
+	}
 
 	let content = (
 		<View style={{...styles.todosWrap, width: deviceWidth}}>

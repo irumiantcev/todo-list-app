@@ -14,6 +14,7 @@ import {
 	UPDATE_TODO
 } from '../types';
 import { ScreenContext } from '../screen/screenContext';
+import { Http } from '../../http';
 
 export const TodoState = ({ children }) => {
 	const initialState = {
@@ -27,34 +28,30 @@ export const TodoState = ({ children }) => {
 	const [state, dispatch] = useReducer(todoReducer, initialState);
 
 	const addTodo = async title => {
-		const response = await fetch('https://todo-list-app-b9e76-default-rtdb.europe-west1.firebasedatabase.app/todos.json', {
-			method: 'POST',
-			headers: {'Content-Type': 'application/json'},
-			body: JSON.stringify({ title })
-		});
-		const data = await response.json();
+		clearError();
 
-		dispatch({ type: ADD_TODO, title, id: data.name });
+		try {
+			const data = await Http.post(
+				'https://todo-list-app-b9e76-default-rtdb.europe-west1.firebasedatabase.app/todos.json',
+				{ title }
+			);
+
+			dispatch({ type: ADD_TODO, title, id: data.name });
+		} catch (e) {
+			showError('Something wrong :( ');
+		}
 	}
 
 	const fetchTodos = async () => {
 		showLoader();
 		clearError();
 		try {
-			const response = await fetch(
-				'https://todo-list-app-b9e76-default-rtdb.europe-west1.firebasedatabase.app/todos.json',
-				{
-					method: 'GET',
-					headers: {'Content-Type': 'application/json'}
-				}
-			);
-			const data = await response.json();
+			const data = await Http.get('https://todo-list-app-b9e76-default-rtdb.europe-west1.firebasedatabase.app/todos.json');
 
 			const todos = Object.keys(data).map(key => ({...data[key], id: key}));
 			dispatch({ type: FETCH_TODOS, todos });
 		} catch (e) {
 			showError('Something wrong :( ');
-			console.log(e);
 		} finally {
 			hideLoader();
 		}
@@ -75,13 +72,7 @@ export const TodoState = ({ children }) => {
 					style: 'destructive',
 					onPress: async () => {
 						changeScreen(null);
-						await fetch(
-							`https://todo-list-app-b9e76-default-rtdb.europe-west1.firebasedatabase.app/todos/${id}.json`,
-							{
-								method: 'DELETE',
-								headers: {'Content-Type': 'application/json'}
-							}
-						);
+						await Http.delete(`https://todo-list-app-b9e76-default-rtdb.europe-west1.firebasedatabase.app/todos/${id}.json`);
 						dispatch({ type: REMOVE_TODO, id });
 					}
 				}
@@ -96,18 +87,13 @@ export const TodoState = ({ children }) => {
 		clearError();
 
 		try {
-			await fetch(
+			await Http.patch(
 				`https://todo-list-app-b9e76-default-rtdb.europe-west1.firebasedatabase.app/todos/${id}.json`,
-				{
-					method: 'PATCH',
-					headers: {'Content-Type': 'application/json'},
-					body: JSON.stringify({title})
-				}
-			);
+				{ title }
+			)
 			dispatch({ type: UPDATE_TODO, id, title });
 		} catch (e) {
 			showError('Something wrong :( ');
-			console.log(e);
 		}
 	}
 

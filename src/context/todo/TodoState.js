@@ -15,7 +15,6 @@ import {
 } from '../types';
 import { ScreenContext } from '../screen/screenContext';
 
-
 export const TodoState = ({ children }) => {
 	const initialState = {
 		todos: [],
@@ -40,17 +39,25 @@ export const TodoState = ({ children }) => {
 
 	const fetchTodos = async () => {
 		showLoader();
-		const response = await fetch('https://todo-list-app-b9e76-default-rtdb.europe-west1.firebasedatabase.app/todos.json', {
-			method: 'GET',
-			headers: {'Content-Type': 'application/json'}
-		});
-		const data = await response.json();
+		clearError();
+		try {
+			const response = await fetch(
+				'https://todo-list-app-b9e76-default-rtdb.europe-west1.firebasedatabase.app/todos.json',
+				{
+					method: 'GET',
+					headers: {'Content-Type': 'application/json'}
+				}
+			);
+			const data = await response.json();
 
-		// console.log('Fetch data', data);
-
-		const todos = Object.keys(data).map(key => ({...data[key], id: key}));
-		dispatch({ type: FETCH_TODOS, todos });
-		hideLoader();
+			const todos = Object.keys(data).map(key => ({...data[key], id: key}));
+			dispatch({ type: FETCH_TODOS, todos });
+		} catch (e) {
+			showError('Something wrong :( ');
+			console.log(e);
+		} finally {
+			hideLoader();
+		}
 	};
 
 	const removeTodo = id => {
@@ -66,8 +73,15 @@ export const TodoState = ({ children }) => {
 				{
 					text: 'Yes',
 					style: 'destructive',
-					onPress: () => {
+					onPress: async () => {
 						changeScreen(null);
+						await fetch(
+							`https://todo-list-app-b9e76-default-rtdb.europe-west1.firebasedatabase.app/todos/${id}.json`,
+							{
+								method: 'DELETE',
+								headers: {'Content-Type': 'application/json'}
+							}
+						);
 						dispatch({ type: REMOVE_TODO, id });
 					}
 				}
@@ -78,7 +92,24 @@ export const TodoState = ({ children }) => {
 		);
 	};
 
-	const updateTodo = (id, title) => dispatch({ type: UPDATE_TODO, id, title });
+	const updateTodo = async (id, title) => {
+		clearError();
+
+		try {
+			await fetch(
+				`https://todo-list-app-b9e76-default-rtdb.europe-west1.firebasedatabase.app/todos/${id}.json`,
+				{
+					method: 'PATCH',
+					headers: {'Content-Type': 'application/json'},
+					body: JSON.stringify({title})
+				}
+			);
+			dispatch({ type: UPDATE_TODO, id, title });
+		} catch (e) {
+			showError('Something wrong :( ');
+			console.log(e);
+		}
+	}
 
 	const showLoader = () => dispatch({ type: SHOW_LOADER });
 	const hideLoader = () => dispatch({ type: HIDE_LOADER });
